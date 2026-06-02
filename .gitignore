@@ -10,6 +10,7 @@ dist-ssr/
 Code.gs
 apps-script/
 SETUP.md
+PROJECT_SUMMARY.md
 
 # ─── Dead Create-React-App stubs (real app is src/App.jsx) ────
 public/index.html
