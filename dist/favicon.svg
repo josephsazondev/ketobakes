@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- dark rounded background -->
+  <rect width="64" height="64" rx="14" fill="#3D2314"/>
+  <!-- bread loaf dome -->
+  <path d="M11 46 Q10 28 32 24 Q54 28 53 46 Z" fill="#D4874E"/>
+  <!-- loaf base tray -->
+  <rect x="10" y="44" width="44" height="10" rx="5" fill="#C4956A"/>
+  <!-- crust score line -->
+  <path d="M20 38 Q32 31 44 38" stroke="rgba(61,35,20,0.45)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- steam wisps -->
+  <path d="M25 22 C23 17 27 12 25 7" stroke="#F5EFE0" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M32 20 C30 15 34 10 32 5" stroke="#F5EFE0" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <path d="M39 22 C37 17 41 12 39 7" stroke="#F5EFE0" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+</svg>

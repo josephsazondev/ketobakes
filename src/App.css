@@ -1,0 +1,263 @@
+/* src/App.css — Component-level styles */
+
+/* ── Dashboard: Hero band ───────────────────────── */
+.hero-band {
+  background: linear-gradient(155deg, var(--brown-deep) 0%, var(--brown-mid) 100%);
+  padding: 22px 20px 38px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-band::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 160px; height: 160px;
+  background: var(--caramel);
+  opacity: 0.07;
+  border-radius: 50%;
+}
+
+.hero-band::after {
+  content: '';
+  position: absolute;
+  bottom: -50px; left: 10px;
+  width: 110px; height: 110px;
+  background: var(--sage);
+  opacity: 0.09;
+  border-radius: 50%;
+}
+
+.hero-greeting {
+  font-family: 'Lato', sans-serif;
+  color: var(--brown-light);
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-profit {
+  color: var(--cream);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.02em;
+}
+
+.hero-change {
+  font-size: 12px;
+  margin-top: 6px;
+  font-weight: 400;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── KPI stat cards ─────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 0 16px;
+  margin-top: -18px;
+  position: relative;
+  z-index: 2;
+}
+
+.stat-card {
+  background: var(--warm-white);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.stat-type {
+  font-size: 10px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.stat-value {
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.stat-value.income  { color: var(--sage); }
+.stat-value.expense { color: var(--caramel); }
+
+/* ── Product list ───────────────────────────────── */
+.product-list { padding: 0 16px; }
+
+.product-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.product-row:last-child { border-bottom: none; }
+
+.product-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.product-name {
+  font-size: 13px;
+  color: var(--text-dark);
+  flex: 1;
+}
+
+.product-qty {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-right: 12px;
+}
+
+.product-amount {
+  font-size: 14px;
+  color: var(--brown-mid);
+  font-weight: 600;
+}
+
+/* ── Trend bars ─────────────────────────────────── */
+.trend-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  padding: 8px 16px 16px;
+  gap: 6px;
+}
+
+.trend-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+}
+
+.trend-bar-wrap {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 56px;
+}
+
+.trend-bar {
+  width: 10px;
+  border-radius: 3px 3px 0 0;
+  min-height: 3px;
+  transition: height 0.4s ease;
+}
+
+.income-bar  { background: var(--sage); }
+.expense-bar { background: rgba(212,135,78,0.45); }
+
+.trend-label {
+  font-size: 10px;
+  color: var(--text-light);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ── Form group spacing ─────────────────────────── */
+.form-group { margin-bottom: 13px; }
+
+/* ── History screen ─────────────────────────────── */
+.month-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.month-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brown-deep);
+}
+
+.month-net {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.txn-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--warm-white);
+  border-radius: 12px;
+  margin-bottom: 7px;
+  box-shadow: var(--shadow-sm);
+  border-left: 3px solid var(--sage);
+  gap: 10px;
+}
+
+.txn-item.expense {
+  border-left-color: var(--caramel);
+}
+
+.txn-date-col {
+  width: 38px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.txn-day {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1;
+}
+
+.txn-mon {
+  font-size: 10px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
+.txn-info { flex: 1; min-width: 0; }
+
+.txn-name {
+  font-size: 13px;
+  color: var(--text-dark);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.txn-sub {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.txn-amount {
+  font-size: 15px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.txn-amount.income  { color: var(--sage); }
+.txn-amount.expense { color: var(--caramel); }
