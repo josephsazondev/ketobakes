@@ -5,6 +5,7 @@ Income & expense tracker for your weekend baking side hustle.
 
 ---
 
+
 ## Project Structure
 
 ```
