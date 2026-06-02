@@ -1,26 +1,19 @@
 {
+  "name": "Keto Bakes",
   "short_name": "KetoBakes",
-  "name": "Keto Bakes Tracker",
+  "description": "Income & expense tracker for Keto Bakes",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#F5EFE0",
+  "theme_color": "#3D2314",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
-  ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#3D2314",
-  "background_color": "#F5EFE0",
-  "orientation": "portrait"
+  ]
 }
