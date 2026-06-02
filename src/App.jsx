@@ -77,18 +77,30 @@ function computeStats(txns, mKey) {
   const prev = txns.filter(t => inMonth(t, prevKey));
 
   const products = {};
-  cur.filter(t => t.type === 'income').forEach(t => {
+  const curIncome = cur.filter(t => t.type === 'income');
+  curIncome.forEach(t => {
     const k = t.name || 'Unknown';
     (products[k] ||= { name: k, qty: 0, amount: 0 });
     products[k].qty += Number(t.qty || 0);
     products[k].amount += Number(t.amount || 0);
   });
 
+  const income = sum(cur, 'income'), expenses = sum(cur, 'expense');
+  const orders = curIncome.length;
+  const itemsSold = curIncome.reduce((s, t) => s + Number(t.qty || 0), 0);
+  const collected = curIncome.filter(t => t.paid).reduce((s, t) => s + Number(t.amount || 0), 0);
+
   return {
-    income: sum(cur, 'income'), expenses: sum(cur, 'expense'),
+    income, expenses,
     prevIncome: sum(prev, 'income'), prevExpenses: sum(prev, 'expense'),
+    orders, itemsSold,
+    avgOrder: orders ? income / orders : 0,
+    margin: income > 0 ? ((income - expenses) / income) * 100 : 0,
+    collected, outstanding: income - collected,
     topProducts: Object.values(products).sort((a, b) => b.amount - a.amount).slice(0, 6),
-    unpaid: txns.filter(t => t.type === 'income' && t.paid === false),
+    // All-time receivables, oldest first (most overdue at the top).
+    unpaid: txns.filter(t => t.type === 'income' && t.paid === false)
+      .sort((a, b) => parseDate(a.date) - parseDate(b.date)),
   };
 }
 
@@ -207,19 +219,20 @@ function SmartSelect({ value, onChange, options, listKey }) {
       <button style={{ padding: '0 10px', background: 'none', color: C.textLight, border: `1.5px solid rgba(196,149,106,0.3)`, borderRadius: 12, cursor: 'pointer' }} onClick={() => setAdding(false)}>✕</button>
     </div>
   );
+  const list = value && !options.includes(value) ? [value, ...options] : options;
   return (
     <select style={S.input} value={value} onChange={e => e.target.value === '__add' ? setAdding(true) : onChange(e.target.value)}>
-      {options.map(o => <option key={o} value={o}>{o}</option>)}
+      {list.map(o => <option key={o} value={o}>{o}</option>)}
       <option value="__add">+ Add new…</option>
     </select>
   );
 }
 
-function MonthlyChart({ txns }) {
+function MonthlyChart({ txns, month }) {
   if (!txns.length) return null;
-  const now = new Date();
+  const [my, mm] = month.split('-').map(Number);
   const cells = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    const d = new Date(my, mm - 1 - 5 + i, 1);
     return { key: monthKey(d), label: MONTHS[d.getMonth()], income: 0, expense: 0 };
   });
   const byKey = Object.fromEntries(cells.map(c => [c.key, c]));
@@ -229,7 +242,7 @@ function MonthlyChart({ txns }) {
   return (
     <div style={{ padding: '4px 16px 16px' }}>
       <div style={{ ...S.section, padding: '12px 0 10px' }}>
-        <span>6-Month Overview</span>
+        <span>6-Month Trend</span>
         <div style={{ display: 'flex', gap: 10 }}>
           <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>▮ Income</span>
           <span style={{ fontSize: 10, color: C.caramel, fontWeight: 700 }}>▮ Expense</span>
@@ -239,11 +252,13 @@ function MonthlyChart({ txns }) {
         {cells.map((c, i) => {
           const x = PAD + i * gW;
           const ih = Math.max(3, c.income / max * H), eh = Math.max(3, c.expense / max * H);
+          const sel = c.key === month;
           return (
-            <g key={c.key}>
-              <rect x={x} y={H - ih} width={bw} height={ih} rx="3" fill={C.sage} opacity="0.85" />
-              <rect x={x + bw + gap} y={H - eh} width={bw} height={eh} rx="3" fill={C.caramel} opacity="0.85" />
-              <text x={x + bw + gap / 2} y={H + 15} textAnchor="middle" fontSize="9" fill={C.textLight}>{c.label}</text>
+            <g key={c.key} opacity={sel ? 1 : 0.5}>
+              {sel && <rect x={x - gap - 2} y={-2} width={bw * 2 + gap + 8} height={H + 4} rx="6" fill="rgba(196,149,106,0.14)" />}
+              <rect x={x} y={H - ih} width={bw} height={ih} rx="3" fill={C.sage} />
+              <rect x={x + bw + gap} y={H - eh} width={bw} height={eh} rx="3" fill={C.caramel} />
+              <text x={x + bw + gap / 2} y={H + 15} textAnchor="middle" fontSize="9" fontWeight={sel ? 700 : 400} fill={sel ? C.brownDeep : C.textLight}>{c.label}</text>
             </g>
           );
         })}
@@ -252,38 +267,86 @@ function MonthlyChart({ txns }) {
   );
 }
 
-function UnpaidPanel({ unpaid }) {
+function MonthDetail({ st }) {
+  const tiles = [
+    ['Orders', String(st.orders), C.brownMid],
+    ['Items Sold', String(st.itemsSold), C.brownMid],
+    ['Avg Order', peso(st.avgOrder), C.brownMid],
+    ['Margin', `${Math.round(st.margin)}%`, st.margin >= 0 ? C.sage : C.caramel],
+    ['Collected', peso(st.collected), C.sage],
+    ['Outstanding', peso(st.outstanding), st.outstanding > 0 ? C.caramel : C.textLight],
+  ];
+  return (
+    <div style={{ padding: '14px 16px 0' }}>
+      <div style={{ ...S.section, padding: '0 0 10px' }}>This Month</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+        {tiles.map(([label, val, col]) => (
+          <div key={label} style={{ ...S.card, padding: '11px 12px' }}>
+            <div style={{ fontSize: 9, color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 4, whiteSpace: 'nowrap' }}>{label}</div>
+            <div className="num" style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: col, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{val}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function UnpaidPanel({ unpaid, onTogglePaid }) {
+  const [expanded, setExpanded] = useState(false);
   if (!unpaid.length) return null;
+  const LIMIT = 4;
   const total = unpaid.reduce((s, t) => s + Number(t.amount || 0), 0);
+  const shown = expanded ? unpaid : unpaid.slice(0, LIMIT);
   return (
     <div style={{ margin: '12px 16px 4px', background: 'rgba(212,135,78,0.08)', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(212,135,78,0.3)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramel, fontWeight: 700 }}>Outstanding ({unpaid.length})</span>
         <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramel, fontWeight: 600 }} className="num">{peso(total)}</span>
       </div>
-      {unpaid.slice(0, 3).map((t, i) => (
-        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderTop: '1px solid rgba(212,135,78,0.15)' }}>
-          <span style={{ fontSize: 12, color: C.textMid }}>{t.name}{t.payer ? ` · ${t.payer}` : ''}</span>
-          <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
-        </div>
-      ))}
-      {unpaid.length > 3 && <div style={{ fontSize: 11, color: C.textLight, paddingTop: 5 }}>+{unpaid.length - 3} more unpaid</div>}
+      <div style={{ maxHeight: expanded ? 232 : 'none', overflowY: expanded ? 'auto' : 'visible' }}>
+        {shown.map((t, i) => {
+          const d = parseDate(t.date);
+          return (
+            <div key={t.rowId || i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 0', borderTop: '1px solid rgba(212,135,78,0.15)' }}>
+              <span style={{ fontSize: 12, color: C.textMid, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span className="num" style={{ color: C.textLight, marginRight: 7 }}>{z(d.getMonth() + 1)}/{z(d.getDate())}</span>
+                {t.name}{t.payer ? ` · ${t.payer}` : ''}
+              </span>
+              <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
+              {onTogglePaid && (
+                <button onClick={() => onTogglePaid(t)} title="Mark as paid"
+                  style={{ flexShrink: 0, fontSize: 9, fontWeight: 700, letterSpacing: '0.03em', borderRadius: 6, padding: '3px 7px', cursor: 'pointer', border: `1px solid ${C.sage}`, background: 'transparent', color: C.sage }}>
+                  ✓ PAID
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {unpaid.length > LIMIT && (
+        <button onClick={() => setExpanded(e => !e)}
+          style={{ marginTop: 7, background: 'none', border: 'none', color: C.caramel, fontSize: 11, fontWeight: 700, letterSpacing: '0.03em', cursor: 'pointer', padding: '2px 0' }}>
+          {expanded ? 'Show less ▲' : `Show all ${unpaid.length} ▾`}
+        </button>
+      )}
     </div>
   );
 }
 
-function SwipeRow({ children, onDelete }) {
+function SwipeRow({ children, onDelete, onTap }) {
   const [open, setOpen] = useState(false);
   const x0 = useRef(null);
+  const moved = useRef(false);
   return (
     <div style={{ position: 'relative', borderRadius: 12, marginBottom: 7, overflow: 'hidden' }}>
       {/* Delete sits behind, revealed on swipe */}
       <button style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 76, background: C.danger, border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', borderRadius: '0 12px 12px 0' }}
         onClick={() => { onDelete(); setOpen(false); }}>Delete</button>
       {/* Sliding panel on top */}
-      <div style={{ position: 'relative', zIndex: 1, background: C.warmWhite, transform: `translateX(${open ? -76 : 0}px)`, transition: 'transform .22s ease' }}
-        onClick={() => open && setOpen(false)}
-        onTouchStart={e => x0.current = e.touches[0].clientX}
+      <div style={{ position: 'relative', zIndex: 1, background: C.warmWhite, cursor: onTap ? 'pointer' : 'default', transform: `translateX(${open ? -76 : 0}px)`, transition: 'transform .22s ease' }}
+        onClick={() => { if (moved.current) { moved.current = false; return; } if (open) setOpen(false); else if (onTap) onTap(); }}
+        onTouchStart={e => { x0.current = e.touches[0].clientX; moved.current = false; }}
+        onTouchMove={e => { if (Math.abs(e.touches[0].clientX - x0.current) > 8) moved.current = true; }}
         onTouchEnd={e => { const dx = e.changedTouches[0].clientX - x0.current; if (dx < -52) setOpen(true); else if (dx > 20) setOpen(false); }}>
         {children}
       </div>
@@ -291,8 +354,19 @@ function SwipeRow({ children, onDelete }) {
   );
 }
 
+// Tappable payment-status pill — toggles paid ⇄ unpaid.
+const StatusPill = ({ paid, onToggle }) => (
+  <button onClick={onToggle} title={paid ? 'Mark as unpaid' : 'Mark as paid'}
+    style={{
+      fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', borderRadius: 5, padding: '2px 6px', cursor: 'pointer',
+      border: paid ? '1px solid rgba(138,158,122,0.4)' : 'none',
+      background: paid ? 'transparent' : 'rgba(212,135,78,0.2)',
+      color: paid ? C.sage : C.caramel,
+    }}>{paid ? 'PAID' : 'UNPAID'}</button>
+);
+
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-function Dashboard({ txns, loading, error, month, onAdd }) {
+function Dashboard({ txns, loading, error, month, onTogglePaid }) {
   const st = useMemo(() => computeStats(txns, month), [txns, month]);
   if (loading) return <Spinner />;
   if (error) return <div style={S.center}><div style={S.error}>{error}</div><div style={{ ...S.muted, fontSize: 12 }}>Configure the API in Settings ⚙</div></div>;
@@ -311,8 +385,9 @@ function Dashboard({ txns, loading, error, month, onAdd }) {
           <div style={S.card}><div style={S.cardLabel}>Income</div><div style={S.cardValue(true)} className="num">{peso(st.income)}</div></div>
           <div style={S.card}><div style={S.cardLabel}>Expenses</div><div style={S.cardValue(false)} className="num">{peso(st.expenses)}</div></div>
         </div>
-        <UnpaidPanel unpaid={st.unpaid} />
-        <MonthlyChart txns={txns} />
+        <MonthDetail st={st} />
+        <UnpaidPanel unpaid={st.unpaid} onTogglePaid={onTogglePaid} />
+        <MonthlyChart txns={txns} month={month} />
         <div style={S.section}>Top Products<span style={S.sectionTag}>{labelOf(month)}</span></div>
         <div style={{ padding: '0 16px 16px' }}>
           {st.topProducts.length === 0
@@ -327,7 +402,6 @@ function Dashboard({ txns, loading, error, month, onAdd }) {
             ))}
         </div>
       </div>
-      <button style={S.fab} onClick={onAdd} aria-label="Add entry">+</button>
     </div>
   );
 }
@@ -338,10 +412,21 @@ const LOG_CONFIG = {
   expense: { catLabel: 'Particulars', catList: 'expenseTypes', subLabel: 'Store / Supplier', subList: 'stores' },
 };
 
-function LogEntry({ onBack, onSaved }) {
+function LogEntry({ onBack, onSaved, editTxn }) {
   const dd = getDropdowns();
-  const [type, setType] = useState('income');
-  const [form, setForm] = useState({ date: todayISO(), cat: dd.products[0], sub: dd.payers[0], qty: '1', price: '', paid: true, description: '' });
+  const editing = !!editTxn;
+  const [type, setType] = useState(editTxn?.type || 'income');
+  const [form, setForm] = useState(editTxn
+    ? {
+        date: editTxn.date,
+        cat: editTxn.type === 'income' ? editTxn.name : editTxn.particulars,
+        sub: editTxn.type === 'income' ? (editTxn.payer || '') : editTxn.name,
+        qty: String(editTxn.qty ?? '1'),
+        price: String(editTxn.price ?? ''),
+        paid: editTxn.paid !== false,
+        description: editTxn.description || '',
+      }
+    : { date: todayISO(), cat: dd.products[0], sub: dd.payers[0], qty: '1', price: '', paid: true, description: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -359,10 +444,13 @@ function LogEntry({ onBack, onSaved }) {
   const save = async () => {
     if (!form.price || isNaN(parseFloat(form.price))) return setError('Enter a valid price.');
     setSaving(true); setError('');
-    const base = { type, date: form.date, qty: parseFloat(form.qty) || 1, price: parseFloat(form.price) || 0, amount, paid: form.paid, description: form.description };
-    const payload = type === 'income'
-      ? { ...base, name: form.cat, payer: form.sub }
-      : { ...base, particulars: form.cat, name: form.sub };
+    const base = { date: form.date, qty: parseFloat(form.qty) || 1, price: parseFloat(form.price) || 0, amount, paid: form.paid, description: form.description };
+    const fields = type === 'income'
+      ? { name: form.cat, payer: form.sub, particulars: editTxn?.particulars || '' }
+      : { particulars: form.cat, name: form.sub };
+    const payload = editing
+      ? { type: 'update', rowId: editTxn.rowId, ...base, ...fields }
+      : { type, ...base, ...fields };
     try {
       await api.post(payload);
       setDone(true);
@@ -371,20 +459,24 @@ function LogEntry({ onBack, onSaved }) {
   };
 
   if (done) return (
-    <div style={{ ...S.center, height: '100%' }}><div style={{ fontSize: 48 }}>✓</div><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sage }}>Saved!</div></div>
+    <div style={{ ...S.center, height: '100%' }}><div style={{ fontSize: 48 }}>✓</div><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sage }}>{editing ? 'Updated!' : 'Saved!'}</div></div>
   );
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ ...S.subHeader, gap: 14, justifyContent: 'flex-start' }}>
         <button style={{ background: 'none', border: 'none', color: C.brownLight, fontSize: 20, cursor: 'pointer' }} onClick={onBack}>←</button>
-        <div style={{ fontFamily: SERIF, color: C.cream, fontSize: 18, fontWeight: 600 }}>New Entry</div>
+        <div style={{ fontFamily: SERIF, color: C.cream, fontSize: 18, fontWeight: 600 }}>{editing ? 'Edit Entry' : 'New Entry'}</div>
       </div>
       <div style={S.screen}>
-        <div style={{ ...S.toggleWrap, margin: '16px 16px 0' }}>
-          <button style={S.toggle(type === 'income')} onClick={() => switchType('income')}>Income</button>
-          <button style={S.toggle(type === 'expense')} onClick={() => switchType('expense')}>Expense</button>
-        </div>
+        {editing
+          ? <div style={{ ...S.toggleWrap, margin: '16px 16px 0' }}>
+              <span style={{ flex: 1, textAlign: 'center', padding: 9, borderRadius: 9, fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', background: type === 'income' ? C.sage : C.caramel, color: '#fff' }}>{type}</span>
+            </div>
+          : <div style={{ ...S.toggleWrap, margin: '16px 16px 0' }}>
+              <button style={S.toggle(type === 'income')} onClick={() => switchType('income')}>Income</button>
+              <button style={S.toggle(type === 'expense')} onClick={() => switchType('expense')}>Expense</button>
+            </div>}
         <div style={S.formArea}>
           <div style={S.group}>
             <label style={S.label}>Date</label>
@@ -421,7 +513,7 @@ function LogEntry({ onBack, onSaved }) {
 }
 
 // ─── HISTORY ─────────────────────────────────────────────────────────────────
-function History({ txns, loading, error, month, onMonth, onDelete }) {
+function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTogglePaid }) {
   const [typeF, setTypeF] = useState('all');
   const [paidF, setPaidF] = useState('all');
   const [q, setQ] = useState('');
@@ -501,13 +593,15 @@ function History({ txns, loading, error, month, onMonth, onDelete }) {
                     <div style={{ fontSize: 13.5, color: C.textDark, fontWeight: 700, marginBottom: 2 }}>{exp ? t.particulars : t.name}</div>
                     <div style={{ fontSize: 11, color: C.textLight }}>{exp ? t.name : `${t.qty} pcs · ${t.payer || ''}`}</div>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                     <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramel : C.sage }} className="num">{exp ? '−' : ''}{peso(t.amount)}</div>
-                    {!t.paid && <span style={{ fontSize: 9, background: 'rgba(212,135,78,0.2)', color: C.caramel, borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>UNPAID</span>}
+                    <StatusPill paid={t.paid} onToggle={(e) => { e.stopPropagation(); onTogglePaid && onTogglePaid(t); }} />
                   </div>
                 </div>
               );
-              return onDelete ? <SwipeRow key={t.rowId} onDelete={() => onDelete(t)}>{card}</SwipeRow> : <div key={t.rowId} style={{ marginBottom: 7 }}>{card}</div>;
+              return onDelete
+                ? <SwipeRow key={t.rowId} onDelete={() => onDelete(t)} onTap={() => onEdit && onEdit(t)}>{card}</SwipeRow>
+                : <div key={t.rowId} style={{ marginBottom: 7 }}>{card}</div>;
             })}
           </div>
         ))}
@@ -602,7 +696,6 @@ function Settings({ onClearCache }) {
 // ─── ROOT ────────────────────────────────────────────────────────────────────
 const NAV = [
   ['dashboard', IconDash, 'Dashboard'],
-  ['log', IconPlus, 'Log'],
   ['history', IconList, 'History'],
   ['settings', IconCog, 'Settings'],
 ];
@@ -610,27 +703,49 @@ const NAV = [
 export default function App() {
   const [tab, setTab] = useState('dashboard');
   const [showLog, setShowLog] = useState(false);
+  const [editTxn, setEditTxn] = useState(null);
   const [txns, setTxns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [month, setMonth] = useState(thisMonth());
 
-  const load = useCallback(async () => {
-    setLoading(true); setError('');
+  // silent = refresh in the background without flipping the spinner (used after edits)
+  const load = useCallback(async (silent) => {
+    if (!silent) setLoading(true);
+    setError('');
     try { setTxns((await api.get('history')).transactions || []); }
-    catch (e) { setError(e.message); }
-    finally { setLoading(false); }
+    catch (e) { if (!silent) setError(e.message); }
+    finally { if (!silent) setLoading(false); }
   }, []);
   useEffect(() => { load(); }, [load]);
 
+  const openNew = () => { setEditTxn(null); setShowLog(true); };
+  const openEdit = (t) => { setEditTxn(t); setShowLog(true); };
+
+  // Rewrite a whole row from a transaction object (used by toggle paid).
+  const sendUpdate = (t) => api.post({
+    type: 'update', rowId: t.rowId, date: t.date,
+    qty: t.qty, price: t.price, amount: t.amount, paid: t.paid,
+    description: t.description || '', name: t.name || '', payer: t.payer || '', particulars: t.particulars || '',
+  });
+
+  const togglePaid = async (t) => {
+    const updated = { ...t, paid: !t.paid };
+    setTxns(prev => prev.map(x => x.rowId === t.rowId ? updated : x)); // optimistic
+    try { await sendUpdate(updated); load(true); }
+    catch (e) { alert('Update failed: ' + e.message); load(true); }
+  };
+
   const del = async (t) => {
     if (!confirm(`Delete this ${t.type} entry (${peso(t.amount)})?`)) return;
-    try { await api.post({ type: 'delete', rowId: t.rowId }); load(); }
-    catch (e) { alert('Delete failed: ' + e.message); }
+    setTxns(prev => prev.filter(x => x.rowId !== t.rowId)); // optimistic
+    try { await api.post({ type: 'delete', rowId: t.rowId }); load(true); }
+    catch (e) { alert('Delete failed: ' + e.message); load(true); }
   };
+
   const clearCache = () => { if (confirm('Clear all settings and reload?')) { localStorage.clear(); location.reload(); } };
 
-  if (showLog) return <div style={S.app}><LogEntry onBack={() => setShowLog(false)} onSaved={() => { setShowLog(false); load(); }} /></div>;
+  if (showLog) return <div style={S.app}><LogEntry editTxn={editTxn} onBack={() => setShowLog(false)} onSaved={() => { setShowLog(false); load(); }} /></div>;
 
   const dashMonth = month === 'all' ? thisMonth() : month;
   return (
@@ -642,15 +757,16 @@ export default function App() {
         <MonthPicker value={dashMonth} onChange={setMonth} />
       </div>
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {tab === 'dashboard' && <Dashboard txns={txns} loading={loading} error={error} month={dashMonth} onAdd={() => setShowLog(true)} />}
-        {tab === 'history' && <History txns={txns} loading={loading} error={error} month={month} onMonth={setMonth} onDelete={del} />}
+        {tab === 'dashboard' && <Dashboard txns={txns} loading={loading} error={error} month={dashMonth} onTogglePaid={togglePaid} />}
+        {tab === 'history' && <History txns={txns} loading={loading} error={error} month={month} onMonth={setMonth} onDelete={del} onEdit={openEdit} onTogglePaid={togglePaid} />}
         {tab === 'settings' && <Settings onClearCache={clearCache} />}
+        {tab !== 'settings' && <button style={S.fab} onClick={openNew} aria-label="Add entry">+</button>}
       </div>
       <div style={S.nav}>
         {NAV.map(([id, Icon, label]) => {
-          const active = tab === id && id !== 'log';
+          const active = tab === id;
           return (
-            <div key={id} style={S.navItem} onClick={() => id === 'log' ? setShowLog(true) : setTab(id)}>
+            <div key={id} style={S.navItem} onClick={() => setTab(id)}>
               <Icon color={active ? C.caramel : C.textLight} />
               <span style={S.navLabel(active)}>{label}</span>
             </div>
