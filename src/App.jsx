@@ -7,7 +7,8 @@ const C = {
   textDark: '#2C1A0E', textMid: '#6B4226', textLight: '#9E7A5E', shadow: 'rgba(61,35,20,0.12)',
   danger: '#C0392B',
 };
-const SERIF = "'Playfair Display', serif";
+// Soft modern display serif (Fraunces). SOFT axis applied globally in index.html.
+const SERIF = "'Fraunces', Georgia, serif";
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
 const DEFAULTS = {
@@ -95,7 +96,7 @@ function computeStats(txns, mKey) {
 const S = {
   app: { display: 'flex', flexDirection: 'column', height: '100%', background: C.warmWhite, overflow: 'hidden' },
   header: { background: C.brownDeep, padding: '16px 20px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
-  logo: { fontFamily: SERIF, color: C.cream, fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em' },
+  logo: { fontFamily: SERIF, color: C.cream, fontSize: 21, fontWeight: 700, letterSpacing: '-0.01em' },
   screen: { flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' },
   nav: { background: C.warmWhite, borderTop: `1px solid rgba(196,149,106,0.2)`, padding: '8px 0 12px', display: 'flex', justifyContent: 'space-around', flexShrink: 0 },
   navItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', flex: 1 },
@@ -103,16 +104,16 @@ const S = {
   subHeader: { background: C.brownDeep, padding: '12px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
   subTitle: { fontFamily: SERIF, color: C.cream, fontSize: 16, fontWeight: 600 },
   iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' },
-  hero: { background: `linear-gradient(160deg, ${C.brownDeep}, ${C.brownMid})`, padding: '20px 20px 36px' },
-  heroLabel: { color: C.brownLight, fontSize: 11, fontWeight: 300, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 4 },
-  heroValue: { fontFamily: SERIF, color: C.cream, fontSize: 38, fontWeight: 700, lineHeight: 1, marginBottom: 4 },
-  heroDelta: { fontSize: 12, color: C.sageLight },
-  statsRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '0 16px', marginTop: -18, position: 'relative', zIndex: 2 },
-  card: { background: C.warmWhite, borderRadius: 16, padding: '14px 16px', boxShadow: `0 4px 16px ${C.shadow}`, border: `1px solid rgba(196,149,106,0.15)` },
-  cardLabel: { fontSize: 10, color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 },
-  cardValue: (income) => ({ fontFamily: SERIF, fontSize: 20, fontWeight: 600, color: income ? C.sage : C.caramel }),
-  section: { fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: C.brownDeep, padding: '16px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTag: { fontSize: 11, color: C.caramel, fontWeight: 700 },
+  hero: { background: `linear-gradient(160deg, ${C.brownDeep}, ${C.brownMid})`, padding: '22px 20px 38px' },
+  heroLabel: { color: C.brownLight, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 },
+  heroValue: { fontFamily: SERIF, color: C.cream, fontSize: 42, fontWeight: 700, lineHeight: 1, marginBottom: 7, letterSpacing: '-0.01em' },
+  heroDelta: (up) => ({ fontSize: 12, color: up ? C.sageLight : '#E8A87C', fontWeight: 400, letterSpacing: '0.01em' }),
+  statsRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '0 16px', marginTop: -20, position: 'relative', zIndex: 2 },
+  card: { background: C.warmWhite, borderRadius: 16, padding: '14px 16px', boxShadow: `0 6px 18px ${C.shadow}`, border: `1px solid rgba(196,149,106,0.15)` },
+  cardLabel: { fontSize: 10, color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5, fontWeight: 700 },
+  cardValue: (income) => ({ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: income ? C.sage : C.caramel }),
+  section: { fontFamily: SERIF, fontSize: 16, fontWeight: 600, color: C.brownDeep, padding: '18px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTag: { fontFamily: "'Nunito Sans', sans-serif", fontSize: 10.5, color: C.caramel, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' },
   row: { display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid rgba(196,149,106,0.15)` },
   dot: (c) => ({ width: 8, height: 8, borderRadius: '50%', background: c, marginRight: 10, flexShrink: 0 }),
   fab: { position: 'absolute', bottom: 20, right: 18, width: 50, height: 50, borderRadius: '50%', background: C.caramel, boxShadow: `0 4px 16px rgba(212,135,78,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, cursor: 'pointer', border: 'none', fontSize: 26, color: '#fff' },
@@ -174,7 +175,7 @@ function MonthPicker({ value, onChange, dark = true }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
       <button onClick={() => shift(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: col, fontSize: 18, padding: '2px 6px' }}>‹</button>
-      <span style={{ color: col, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', minWidth: 74, textAlign: 'center' }}>{MONTHS[m - 1]} {y}</span>
+      <span className="num" style={{ color: col, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', minWidth: 74, textAlign: 'center' }}>{MONTHS[m - 1]} {y}</span>
       <button onClick={() => shift(1)} disabled={atLatest} style={{ background: 'none', border: 'none', cursor: atLatest ? 'default' : 'pointer', color: atLatest ? 'rgba(196,149,106,0.3)' : col, fontSize: 18, padding: '2px 6px' }}>›</button>
     </div>
   );
@@ -251,12 +252,12 @@ function UnpaidPanel({ unpaid }) {
     <div style={{ margin: '12px 16px 4px', background: 'rgba(212,135,78,0.08)', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(212,135,78,0.3)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
         <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramel, fontWeight: 700 }}>Outstanding ({unpaid.length})</span>
-        <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramel, fontWeight: 600 }}>{peso(total)}</span>
+        <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramel, fontWeight: 600 }} className="num">{peso(total)}</span>
       </div>
       {unpaid.slice(0, 3).map((t, i) => (
         <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderTop: '1px solid rgba(212,135,78,0.15)' }}>
           <span style={{ fontSize: 12, color: C.textMid }}>{t.name}{t.payer ? ` · ${t.payer}` : ''}</span>
-          <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }}>{peso(t.amount)}</span>
+          <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
         </div>
       ))}
       {unpaid.length > 3 && <div style={{ fontSize: 11, color: C.textLight, paddingTop: 5 }}>+{unpaid.length - 3} more unpaid</div>}
@@ -269,13 +270,16 @@ function SwipeRow({ children, onDelete }) {
   const x0 = useRef(null);
   return (
     <div style={{ position: 'relative', borderRadius: 12, marginBottom: 7, overflow: 'hidden' }}>
-      <div style={{ transform: `translateX(${open ? -76 : 0}px)`, transition: 'transform .22s ease' }}
+      {/* Delete sits behind, revealed on swipe */}
+      <button style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 76, background: C.danger, border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', borderRadius: '0 12px 12px 0' }}
+        onClick={() => { onDelete(); setOpen(false); }}>Delete</button>
+      {/* Sliding panel on top */}
+      <div style={{ position: 'relative', zIndex: 1, background: C.warmWhite, transform: `translateX(${open ? -76 : 0}px)`, transition: 'transform .22s ease' }}
+        onClick={() => open && setOpen(false)}
         onTouchStart={e => x0.current = e.touches[0].clientX}
         onTouchEnd={e => { const dx = e.changedTouches[0].clientX - x0.current; if (dx < -52) setOpen(true); else if (dx > 20) setOpen(false); }}>
         {children}
       </div>
-      <button style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: 76, background: C.danger, border: 'none', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
-        onClick={() => { onDelete(); setOpen(false); }}>Delete</button>
     </div>
   );
 }
@@ -293,25 +297,25 @@ function Dashboard({ txns, loading, error, month, onAdd }) {
       <div style={S.screen}>
         <div style={S.hero}>
           <div style={S.heroLabel}>Net Profit · {labelOf(month)}</div>
-          <div style={S.heroValue}>{peso(profit)}</div>
-          <div style={S.heroDelta}>{delta >= 0 ? '↑' : '↓'} {peso(Math.abs(delta))} vs prev month</div>
+          <div style={S.heroValue} className="num">{peso(profit)}</div>
+          <div style={S.heroDelta(delta >= 0)}>{delta >= 0 ? '▲' : '▼'} <span className="num">{peso(Math.abs(delta))}</span> vs prev month</div>
         </div>
         <div style={S.statsRow}>
-          <div style={S.card}><div style={S.cardLabel}>Income</div><div style={S.cardValue(true)}>{peso(st.income)}</div></div>
-          <div style={S.card}><div style={S.cardLabel}>Expenses</div><div style={S.cardValue(false)}>{peso(st.expenses)}</div></div>
+          <div style={S.card}><div style={S.cardLabel}>Income</div><div style={S.cardValue(true)} className="num">{peso(st.income)}</div></div>
+          <div style={S.card}><div style={S.cardLabel}>Expenses</div><div style={S.cardValue(false)} className="num">{peso(st.expenses)}</div></div>
         </div>
         <UnpaidPanel unpaid={st.unpaid} />
         <MonthlyChart txns={txns} />
         <div style={S.section}>Top Products<span style={S.sectionTag}>{labelOf(month)}</span></div>
         <div style={{ padding: '0 16px 16px' }}>
           {st.topProducts.length === 0
-            ? <div style={{ ...S.muted, paddingBottom: 16 }}>No sales this month</div>
+            ? <div style={{ ...S.muted, padding: '12px 0 20px' }}>🧁 No sales logged this month yet</div>
             : st.topProducts.map((p, i) => (
               <div key={p.name} style={{ ...S.row, borderBottom: i < st.topProducts.length - 1 ? S.row.borderBottom : 'none' }}>
                 <div style={S.dot(DOTS[i % DOTS.length])} />
-                <div style={{ fontSize: 13, color: C.textDark, flex: 1 }}>{p.name}</div>
-                <div style={{ fontSize: 11, color: C.textLight, marginRight: 12 }}>{p.qty} pcs</div>
-                <div style={{ fontFamily: SERIF, fontSize: 14, color: C.brownMid, fontWeight: 600 }}>{peso(p.amount)}</div>
+                <div style={{ fontSize: 13.5, color: C.textDark, flex: 1 }}>{p.name}</div>
+                <div style={{ fontSize: 11, color: C.textLight, marginRight: 12 }} className="num">{p.qty} pcs</div>
+                <div style={{ fontFamily: SERIF, fontSize: 14, color: C.brownMid, fontWeight: 600 }} className="num">{peso(p.amount)}</div>
               </div>
             ))}
         </div>
@@ -387,7 +391,7 @@ function LogEntry({ onBack, onSaved }) {
             <div style={S.group}><label style={S.label}>Quantity</label><input style={S.input} type="number" min="1" value={form.qty} onChange={e => set('qty', e.target.value)} /></div>
             <div style={S.group}><label style={S.label}>Price (₱)</label><input style={S.input} type="number" min="0" step="0.01" value={form.price} placeholder="0.00" onChange={e => set('price', e.target.value)} /></div>
           </div>
-          <div style={S.group}><label style={S.label}>Amount</label><input style={S.computed} readOnly value={amount > 0 ? peso(amount) : '—'} /></div>
+          <div style={S.group}><label style={S.label}>Amount</label><input style={S.computed} className="num" readOnly value={amount > 0 ? peso(amount) : '—'} /></div>
           <div style={S.group}>
             <label style={S.label}>{cfg.subLabel}</label>
             <SmartSelect value={form.sub} options={dd[cfg.subList]} listKey={cfg.subList} onChange={v => set('sub', v)} />
@@ -473,25 +477,25 @@ function History({ txns, loading, error, month, onMonth, onDelete }) {
         {['all', 'paid', 'unpaid'].map(f => <button key={f} style={S.chip(paidF === f)} onClick={() => setPaidF(f)}>{f === 'all' ? 'Any status' : f}</button>)}
       </div>
       <div style={S.screen}>
-        {sorted.length === 0 && <div style={S.center}><div style={S.muted}>No transactions found</div></div>}
+        {sorted.length === 0 && <div style={S.center}><div style={{ fontSize: 30, opacity: 0.5 }}>🔍</div><div style={S.muted}>No transactions match these filters</div></div>}
         {sorted.map(([key, g]) => (
           <div key={key} style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 8px' }}>
               <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: C.brownDeep }}>{labelOf(key)}</div>
-              <div style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 600, color: g.net >= 0 ? C.sage : C.caramel }}>{g.net >= 0 ? '+' : ''}{peso(g.net)}</div>
+              <div style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 600, color: g.net >= 0 ? C.sage : C.caramel }} className="num">{g.net >= 0 ? '+' : ''}{peso(g.net)}</div>
             </div>
             {g.items.map((t) => {
               const exp = t.type === 'expense';
               const d = parseDate(t.date);
               const card = (
                 <div style={S.txn(exp)}>
-                  <div style={S.txnDate}><span style={{ fontWeight: 700, fontSize: 14, color: C.textDark, display: 'block' }}>{d.getDate()}</span>{MONTHS[d.getMonth()]}</div>
+                  <div style={S.txnDate} className="num"><span style={{ fontWeight: 700, fontSize: 15, color: C.textDark, display: 'block' }}>{d.getDate()}</span>{MONTHS[d.getMonth()]}</div>
                   <div style={S.txnInfo}>
-                    <div style={{ fontSize: 13, color: C.textDark, fontWeight: 700, marginBottom: 2 }}>{exp ? t.particulars : t.name}</div>
+                    <div style={{ fontSize: 13.5, color: C.textDark, fontWeight: 700, marginBottom: 2 }}>{exp ? t.particulars : t.name}</div>
                     <div style={{ fontSize: 11, color: C.textLight }}>{exp ? t.name : `${t.qty} pcs · ${t.payer || ''}`}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
-                    <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramel : C.sage }}>{exp ? '−' : ''}{peso(t.amount)}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramel : C.sage }} className="num">{exp ? '−' : ''}{peso(t.amount)}</div>
                     {!t.paid && <span style={{ fontSize: 9, background: 'rgba(212,135,78,0.2)', color: C.caramel, borderRadius: 4, padding: '1px 5px', fontWeight: 700 }}>UNPAID</span>}
                   </div>
                 </div>

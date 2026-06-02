@@ -12,15 +12,22 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400..700,0..100&family=Nunito+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
     body {
-      font-family: 'Lato', sans-serif;
+      font-family: 'Nunito Sans', sans-serif;
       background: #F5EFE0;
       color: #2C1A0E;
+      line-height: 1.5;
+      letter-spacing: 0.005em;
+      font-optical-sizing: auto;
+      /* SOFT rounds Fraunces' terminals; Nunito Sans ignores axes it lacks */
+      font-variation-settings: 'SOFT' 60;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
       overscroll-behavior: none;
     }
     #root {
@@ -29,7 +36,30 @@
       height: 100dvh; position: relative; overflow: hidden;
       box-shadow: 0 0 40px rgba(0,0,0,0.15);
     }
-    input, select, button, textarea { font-family: inherit; }
+    input, select, button, textarea { font-family: inherit; -webkit-tap-highlight-color: transparent; }
+
+    /* Tabular figures keep currency columns aligned */
+    .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; letter-spacing: 0.01em; }
+
+    /* Focus ring on form fields */
+    input:focus, select:focus, textarea:focus {
+      border-color: #D4874E !important;
+      box-shadow: 0 0 0 3px rgba(212,135,78,0.15);
+    }
+
+    /* Press feedback for buttons */
+    button { transition: transform 0.08s ease, opacity 0.15s ease, background 0.2s ease; }
+    button:active:not(:disabled) { transform: scale(0.97); }
+
+    /* Strip number-input spinners for a cleaner look */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* Hide horizontal scrollbars on chip rows */
+    ::-webkit-scrollbar { height: 0; width: 0; }
+
+    ::selection { background: rgba(212,135,78,0.25); }
   </style>
 </head>
 <body>

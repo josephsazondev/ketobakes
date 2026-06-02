@@ -1,0 +1,41 @@
+# ─── Dependencies ────────────────────────────────────────────
+node_modules/
+
+# ─── Build output (GitHub Actions rebuilds dist/ from source) ──
+dist/
+dist-ssr/
+*.local
+
+# ─── Backend — kept local only (not needed for GitHub Pages) ──
+Code.gs
+apps-script/
+SETUP.md
+
+# ─── Dead Create-React-App stubs (real app is src/App.jsx) ────
+public/index.html
+src/index.js
+src/App.css
+src/index.css
+src/hooks/
+src/pages/
+
+# ─── Environment / secrets ───────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Local tooling / editor ──────────────────────────────────
+.claude/
+.vscode/
+.idea/
+*.swp
+
+# ─── OS cruft ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Logs ────────────────────────────────────────────────────
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
