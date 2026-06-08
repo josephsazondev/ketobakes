@@ -4,7 +4,10 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 const C = {
   cream: '#F5EFE0', warmWhite: '#FBF7F0', brownDeep: '#3D2314', brownMid: '#7B4A2D',
   brownLight: '#C4956A', caramel: '#D4874E', sage: '#8A9E7A', sageLight: '#C8D8BF',
-  textDark: '#2C1A0E', textMid: '#6B4226', textLight: '#9E7A5E', shadow: 'rgba(61,35,20,0.12)',
+  // Accessible (WCAG AA on light bg) variants of the accents — use for TEXT on light.
+  // Keep caramel/sage for graphics (bars, dots, borders, fills, hero).
+  caramelText: '#9C5524', sageText: '#566B45',
+  textDark: '#2C1A0E', textMid: '#6B4226', textLight: '#856241', shadow: 'rgba(61,35,20,0.12)',
   danger: '#C0392B',
 };
 // Soft modern display serif (Fraunces). SOFT axis applied globally in index.html.
@@ -112,9 +115,12 @@ const S = {
   screen: { flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' },
   nav: { background: C.warmWhite, borderTop: `1px solid rgba(196,149,106,0.2)`, padding: '8px 0 12px', display: 'flex', justifyContent: 'space-around', flexShrink: 0 },
   navItem: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, cursor: 'pointer', flex: 1 },
-  navLabel: (a) => ({ fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', color: a ? C.caramel : C.textLight, fontWeight: a ? 700 : 400, marginTop: 2 }),
+  navLabel: (a) => ({ fontSize: 10, letterSpacing: '0.05em', textTransform: 'uppercase', color: a ? C.caramelText : C.textLight, fontWeight: a ? 700 : 400, marginTop: 2 }),
   subHeader: { background: C.brownDeep, padding: '12px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
   subTitle: { fontFamily: SERIF, color: C.cream, fontSize: 16, fontWeight: 600 },
+  // Light in-content page header (keeps the single dark brand bar consistent across tabs)
+  pageHead: { background: C.warmWhite, padding: '16px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 },
+  pageTitle: { fontFamily: SERIF, color: C.brownDeep, fontSize: 22, fontWeight: 600 },
   iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex' },
   hero: { background: `linear-gradient(160deg, ${C.brownDeep}, ${C.brownMid})`, padding: '22px 20px 38px' },
   heroLabel: { color: C.brownLight, fontSize: 10.5, fontWeight: 400, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 6 },
@@ -123,9 +129,9 @@ const S = {
   statsRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, padding: '0 16px', marginTop: -20, position: 'relative', zIndex: 2 },
   card: { background: C.warmWhite, borderRadius: 16, padding: '14px 16px', boxShadow: `0 6px 18px ${C.shadow}`, border: `1px solid rgba(196,149,106,0.15)` },
   cardLabel: { fontSize: 10, color: C.textLight, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5, fontWeight: 700 },
-  cardValue: (income) => ({ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: income ? C.sage : C.caramel }),
+  cardValue: (income) => ({ fontFamily: SERIF, fontSize: 21, fontWeight: 600, color: income ? C.sageText : C.caramelText }),
   section: { fontFamily: SERIF, fontSize: 16, fontWeight: 600, color: C.brownDeep, padding: '18px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTag: { fontFamily: "'Nunito Sans', sans-serif", fontSize: 10.5, color: C.caramel, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' },
+  sectionTag: { fontFamily: "'Nunito Sans', sans-serif", fontSize: 10.5, color: C.caramelText, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' },
   row: { display: 'flex', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid rgba(196,149,106,0.15)` },
   dot: (c) => ({ width: 8, height: 8, borderRadius: '50%', background: c, marginRight: 10, flexShrink: 0 }),
   fab: { position: 'absolute', bottom: 20, right: 18, width: 50, height: 50, borderRadius: '50%', background: C.caramel, boxShadow: `0 4px 16px rgba(212,135,78,0.4)`, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, cursor: 'pointer', border: 'none', fontSize: 26, color: '#fff' },
@@ -134,16 +140,16 @@ const S = {
   group: { marginBottom: 14 },
   label: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.textLight, fontWeight: 700, marginBottom: 6, display: 'block' },
   input: { width: '100%', padding: '12px 14px', border: `1.5px solid rgba(196,149,106,0.3)`, borderRadius: 12, background: C.warmWhite, fontSize: 14, color: C.textDark, outline: 'none', appearance: 'none', WebkitAppearance: 'none', fontFamily: 'inherit' },
-  computed: { width: '100%', padding: '12px 14px', border: `1.5px solid rgba(138,158,122,0.4)`, borderRadius: 12, background: `rgba(138,158,122,0.08)`, fontSize: 18, fontFamily: SERIF, color: C.sage, fontWeight: 600 },
+  computed: { width: '100%', padding: '12px 14px', border: `1.5px solid rgba(138,158,122,0.4)`, borderRadius: 12, background: `rgba(138,158,122,0.08)`, fontSize: 18, fontFamily: SERIF, color: C.sageText, fontWeight: 600 },
   twoCol: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 },
   primaryBtn: { width: '100%', padding: 14, background: C.brownDeep, color: C.cream, border: 'none', borderRadius: 14, fontFamily: SERIF, fontSize: 16, fontWeight: 600, cursor: 'pointer', marginTop: 8 },
-  chip: (a) => ({ padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap', cursor: 'pointer', background: a ? C.warmWhite : `rgba(196,149,106,0.15)`, color: a ? C.caramel : C.textLight, border: `1.5px solid ${a ? C.caramel : 'transparent'}`, flexShrink: 0 }),
+  chip: (a) => ({ padding: '6px 14px', borderRadius: 20, fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap', cursor: 'pointer', background: a ? C.warmWhite : `rgba(196,149,106,0.15)`, color: a ? C.caramelText : C.textLight, border: `1.5px solid ${a ? C.caramel : 'transparent'}`, flexShrink: 0 }),
   txn: (exp) => ({ display: 'flex', alignItems: 'center', padding: '11px 14px', background: C.warmWhite, borderRadius: 12, boxShadow: `0 2px 8px ${C.shadow}`, borderLeft: `3px solid ${exp ? C.caramel : C.sage}` }),
   txnDate: { fontSize: 11, color: C.textLight, width: 42, flexShrink: 0, textAlign: 'center', lineHeight: 1.3 },
   txnInfo: { flex: 1, padding: '0 10px' },
   center: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', gap: 10 },
   muted: { fontSize: 14, color: C.textLight, textAlign: 'center' },
-  error: { fontSize: 13, color: C.caramel, textAlign: 'center' },
+  error: { fontSize: 13, color: C.caramelText, textAlign: 'center' },
   spinner: { width: 32, height: 32, border: `3px solid rgba(196,149,106,0.2)`, borderTop: `3px solid ${C.caramel}`, borderRadius: '50%', animation: 'spin .8s linear infinite' },
   formArea: { padding: '16px 16px 0' },
 };
@@ -202,6 +208,49 @@ const Spinner = () => (
     <div style={S.spinner} /><div style={S.muted}>Loading…</div>
   </div>
 );
+
+// Skeleton placeholder block — shimmer animation defined in index.html.
+const Skel = ({ w = '100%', h = 14, r = 8, mb = 0, light = false, style }) => (
+  <div className="skel" style={{
+    width: w, height: h, borderRadius: r, marginBottom: mb,
+    background: light
+      ? 'linear-gradient(90deg, rgba(255,255,255,0.10), rgba(255,255,255,0.22), rgba(255,255,255,0.10))'
+      : 'linear-gradient(90deg, rgba(196,149,106,0.12), rgba(196,149,106,0.26), rgba(196,149,106,0.12))',
+    backgroundSize: '200% 100%', animation: 'shimmer 1.3s ease-in-out infinite', ...style,
+  }} />
+);
+
+const SkelCard = () => (
+  <div style={{ ...S.card, padding: '14px 16px' }}><Skel w="55%" h={9} mb={9} /><Skel w="75%" h={20} /></div>
+);
+
+function DashboardSkeleton() {
+  return (
+    <div style={{ height: '100%', overflow: 'hidden' }}>
+      <div style={S.hero}>
+        <Skel w="48%" h={10} mb={12} light /><Skel w="62%" h={34} mb={10} light /><Skel w="40%" h={11} light />
+      </div>
+      <div style={S.statsRow}><SkelCard /><SkelCard /></div>
+      <div style={{ padding: '14px 16px 0' }}>
+        <Skel w="34%" h={16} mb={12} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} style={{ ...S.card, padding: '11px 12px' }}><Skel w="70%" h={8} mb={7} /><Skel w="85%" h={15} /></div>)}
+        </div>
+      </div>
+      <div style={{ margin: '16px 16px 0' }}><Skel w="100%" h={120} r={14} /></div>
+      <div style={{ padding: '18px 16px' }}><Skel w="40%" h={16} mb={14} /><Skel w="100%" h={70} r={10} /></div>
+    </div>
+  );
+}
+
+function HistorySkeleton() {
+  return (
+    <div style={{ padding: '16px 16px 0' }}>
+      <Skel w="30%" h={16} mb={14} />
+      {Array.from({ length: 6 }).map((_, i) => <Skel key={i} w="100%" h={62} r={12} mb={9} />)}
+    </div>
+  );
+}
 
 function MonthPicker({ value, onChange, dark = true }) {
   const [y, m] = value.split('-').map(Number);
@@ -273,8 +322,8 @@ function MonthlyChart({ txns, month, onMonth }) {
       {/* Selected-month values + tap hint */}
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingBottom: 8 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: C.brownDeep }}>{selCell ? selCell.label : ''}</span>
-        <span className="num" style={{ fontSize: 12, color: C.sage, fontWeight: 600 }}>{peso(selCell ? selCell.income : 0)}</span>
-        <span className="num" style={{ fontSize: 12, color: C.caramel, fontWeight: 600 }}>{peso(selCell ? selCell.expense : 0)}</span>
+        <span className="num" style={{ fontSize: 12, color: C.sageText, fontWeight: 600 }}>{peso(selCell ? selCell.income : 0)}</span>
+        <span className="num" style={{ fontSize: 12, color: C.caramelText, fontWeight: 600 }}>{peso(selCell ? selCell.expense : 0)}</span>
         <span style={{ fontSize: 10, color: C.textLight, marginLeft: 'auto' }}>tap a month ›</span>
       </div>
       <svg width="100%" viewBox={`0 0 ${W} ${H + 22}`} preserveAspectRatio="xMidYMid meet">
@@ -304,9 +353,9 @@ function MonthDetail({ st }) {
     ['Orders', String(st.orders), C.brownMid],
     ['Items Sold', String(st.itemsSold), C.brownMid],
     ['Avg Order', peso(st.avgOrder), C.brownMid],
-    ['Margin', `${Math.round(st.margin)}%`, st.margin >= 0 ? C.sage : C.caramel],
-    ['Collected', peso(st.collected), C.sage],
-    ['Outstanding', peso(st.outstanding), st.outstanding > 0 ? C.caramel : C.textLight],
+    ['Margin', `${Math.round(st.margin)}%`, st.margin >= 0 ? C.sageText : C.caramelText],
+    ['Collected', peso(st.collected), C.sageText],
+    ['Outstanding', peso(st.outstanding), st.outstanding > 0 ? C.caramelText : C.textLight],
   ];
   return (
     <div style={{ padding: '14px 16px 0' }}>
@@ -332,8 +381,8 @@ function UnpaidPanel({ unpaid, onTogglePaid }) {
   return (
     <div style={{ margin: '12px 16px 4px', background: 'rgba(212,135,78,0.08)', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(212,135,78,0.3)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramel, fontWeight: 700 }}>Receivables · all unpaid ({unpaid.length})</span>
-        <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramel, fontWeight: 600 }} className="num">{peso(total)}</span>
+        <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramelText, fontWeight: 700 }}>Receivables · all unpaid ({unpaid.length})</span>
+        <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramelText, fontWeight: 600 }} className="num">{peso(total)}</span>
       </div>
       <div style={{ maxHeight: expanded ? 232 : 'none', overflowY: expanded ? 'auto' : 'visible' }}>
         {shown.map((t, i) => {
@@ -344,11 +393,11 @@ function UnpaidPanel({ unpaid, onTogglePaid }) {
                 <span className="num" style={{ color: C.textLight, marginRight: 7 }}>{z(d.getMonth() + 1)}/{z(d.getDate())}</span>
                 {t.name}{t.payer ? ` · ${t.payer}` : ''}
               </span>
-              <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
+              <span style={{ fontSize: 12, color: C.caramelText, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
               {onTogglePaid && (
                 <button onClick={() => onTogglePaid(t)} title="Mark as paid"
-                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.02em', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', border: `1px solid ${C.sage}`, background: 'rgba(138,158,122,0.12)', color: C.sage }}>
-                  <IconCheck size={11} color={C.sage} />Mark Paid
+                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.02em', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', border: `1px solid ${C.sage}`, background: 'rgba(138,158,122,0.12)', color: C.sageText }}>
+                  <IconCheck size={11} color={C.sageText} />Mark Paid
                 </button>
               )}
             </div>
@@ -357,7 +406,7 @@ function UnpaidPanel({ unpaid, onTogglePaid }) {
       </div>
       {unpaid.length > LIMIT && (
         <button onClick={() => setExpanded(e => !e)}
-          style={{ marginTop: 7, background: 'none', border: 'none', color: C.caramel, fontSize: 11, fontWeight: 700, letterSpacing: '0.03em', cursor: 'pointer', padding: '2px 0' }}>
+          style={{ marginTop: 7, background: 'none', border: 'none', color: C.caramelText, fontSize: 11, fontWeight: 700, letterSpacing: '0.03em', cursor: 'pointer', padding: '2px 0' }}>
           {expanded ? 'Show less ▲' : `Show all ${unpaid.length} ▾`}
         </button>
       )}
@@ -394,14 +443,14 @@ const StatusPill = ({ paid, onToggle }) => (
       fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', borderRadius: 7, padding: '4px 9px', minHeight: 24, cursor: 'pointer',
       border: paid ? '1px solid rgba(138,158,122,0.5)' : `1px solid ${C.caramel}`,
       background: paid ? 'rgba(138,158,122,0.12)' : 'rgba(212,135,78,0.22)',
-      color: paid ? C.sage : C.caramel,
-    }}>{paid && <IconCheck size={10} color={C.sage} />}{paid ? 'PAID' : 'UNPAID'}</button>
+      color: paid ? C.sageText : C.caramelText,
+    }}>{paid && <IconCheck size={10} color={C.sageText} />}{paid ? 'PAID' : 'UNPAID'}</button>
 );
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
 function Dashboard({ txns, loading, error, month, onTogglePaid, onMonth }) {
   const st = useMemo(() => computeStats(txns, month), [txns, month]);
-  if (loading) return <Spinner />;
+  if (loading) return <DashboardSkeleton />;
   if (error) return <div style={S.center}><div style={S.error}>{error}</div><div style={{ ...S.muted, fontSize: 12 }}>Configure the API in Settings ⚙</div></div>;
 
   const profit = st.income - st.expenses;
@@ -493,7 +542,7 @@ function LogEntry({ onBack, onSaved, editTxn }) {
   };
 
   if (done) return (
-    <div style={{ ...S.center, height: '100%' }}><IconCheckCircle size={52} /><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sage }}>{editing ? 'Updated!' : 'Saved!'}</div></div>
+    <div style={{ ...S.center, height: '100%' }}><IconCheckCircle size={52} color={C.sageText} /><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sageText }}>{editing ? 'Updated!' : 'Saved!'}</div></div>
   );
 
   return (
@@ -553,7 +602,7 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
   const [q, setQ] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
-  if (loading) return <Spinner />;
+  if (loading) return <HistorySkeleton />;
   if (error) return <div style={S.center}><div style={S.error}>{error}</div></div>;
 
   const filtered = txns.filter(t => {
@@ -586,22 +635,22 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={S.subHeader}>
-        <div style={S.subTitle}>History</div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <button style={S.iconBtn} onClick={exportCSV} title="Export CSV"><IconDownload color={C.brownLight} /></button>
-          <button style={S.iconBtn} onClick={() => setShowSearch(s => !s)}><IconSearch color={showSearch ? C.caramel : C.brownLight} /></button>
+      <div style={S.pageHead}>
+        <div style={S.pageTitle}>History</div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button style={S.iconBtn} onClick={exportCSV} title="Export CSV"><IconDownload color={C.brownMid} /></button>
+          <button style={S.iconBtn} onClick={() => setShowSearch(s => !s)} title="Search"><IconSearch color={showSearch ? C.caramelText : C.brownMid} /></button>
         </div>
       </div>
       {showSearch && (
-        <div style={{ padding: '10px 16px', background: C.brownDeep }}>
-          <input style={{ ...S.input, background: 'rgba(255,255,255,0.1)', color: C.cream, border: '1px solid rgba(196,149,106,0.3)' }} autoFocus placeholder="Search transactions…" value={q} onChange={e => setQ(e.target.value)} />
+        <div style={{ padding: '4px 16px 10px', background: C.warmWhite }}>
+          <input style={S.input} autoFocus placeholder="Search transactions…" value={q} onChange={e => setQ(e.target.value)} />
         </div>
       )}
       <div style={{ background: C.warmWhite, padding: '10px 16px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(196,149,106,0.15)' }}>
         <button style={S.chip(month === 'all')} onClick={() => onMonth('all')}>All Months</button>
         {month === 'all'
-          ? <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: C.caramel, fontWeight: 700 }} onClick={() => onMonth(thisMonth())}>Pick month ›</button>
+          ? <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: C.caramelText, fontWeight: 700 }} onClick={() => onMonth(thisMonth())}>Pick month ›</button>
           : <MonthPicker value={month} onChange={onMonth} dark={false} />}
       </div>
       <div style={{ position: 'relative', background: C.warmWhite }}>
@@ -619,7 +668,7 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
           <div key={key} style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 8px' }}>
               <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: C.brownDeep }}>{labelOf(key)}</div>
-              <div style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 600, color: g.net >= 0 ? C.sage : C.caramel }} className="num">{g.net >= 0 ? '+' : ''}{peso(g.net)}</div>
+              <div style={{ fontFamily: SERIF, fontSize: 14, fontWeight: 600, color: g.net >= 0 ? C.sageText : C.caramelText }} className="num">{g.net >= 0 ? '+' : ''}{peso(g.net)}</div>
             </div>
             {g.items.map((t) => {
               const exp = t.type === 'expense';
@@ -632,7 +681,7 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
                     <div style={{ fontSize: 11, color: C.textLight }}>{exp ? t.name : `${t.qty} pcs · ${t.payer || ''}`}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
-                    <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramel : C.sage }} className="num">{exp ? '−' : ''}{peso(t.amount)}</div>
+                    <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramelText : C.sageText }} className="num">{exp ? '−' : ''}{peso(t.amount)}</div>
                     {/* Income always shows the toggle; expenses only when unpaid (paid expenses are the norm) */}
                     {(!exp || !t.paid) && <StatusPill paid={t.paid} onToggle={(e) => { e.stopPropagation(); onTogglePaid && onTogglePaid(t); }} />}
                   </div>
@@ -675,7 +724,7 @@ function Settings({ onClearCache }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={S.subHeader}><div style={S.subTitle}>Settings</div></div>
+      <div style={S.pageHead}><div style={S.pageTitle}>Settings</div></div>
       <div style={S.screen}>
         <div style={{ padding: '16px 16px 40px' }}>
           <div style={divider}>API Configuration</div>
@@ -710,7 +759,7 @@ function Settings({ onClearCache }) {
             <button style={{ ...S.primaryBtn, flex: 1, marginTop: 0, background: saved ? C.sage : C.brownDeep }} onClick={save}>{saved ? '✓ Saved' : 'Save'}</button>
             <button style={{ ...S.primaryBtn, flex: 1, marginTop: 0, background: 'none', color: C.brownMid, border: '1.5px solid rgba(196,149,106,0.4)' }} onClick={test} disabled={testing}>{testing ? 'Testing…' : 'Test Connection'}</button>
           </div>
-          {status && <div style={{ fontSize: 13, color: status[0] === '✓' ? C.sage : C.caramel, marginBottom: 14, padding: '10px 12px', background: status[0] === '✓' ? 'rgba(138,158,122,0.1)' : 'rgba(212,135,78,0.1)', borderRadius: 10 }}>{status}</div>}
+          {status && <div style={{ fontSize: 13, color: status[0] === '✓' ? C.sageText : C.caramelText, marginBottom: 14, padding: '10px 12px', background: status[0] === '✓' ? 'rgba(138,158,122,0.1)' : 'rgba(212,135,78,0.1)', borderRadius: 10 }}>{status}</div>}
 
           <div style={{ ...divider, marginTop: 8 }}>Setup Guide</div>
           <ol style={{ fontSize: 13, color: C.textMid, lineHeight: 1.8, margin: '14px 0', paddingLeft: 18 }}>
@@ -724,7 +773,7 @@ function Settings({ onClearCache }) {
           <div style={{ ...divider, marginTop: 8 }}>Data</div>
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button style={{ ...S.primaryBtn, marginTop: 0, background: 'none', color: C.textMid, border: '1.5px solid rgba(196,149,106,0.3)' }} onClick={() => { if (confirm('Reset dropdown lists to defaults?')) { localStorage.removeItem('kb_dropdowns'); alert('Done.'); } }}>Reset Dropdown Lists</button>
-            <button style={{ ...S.primaryBtn, marginTop: 0, background: 'none', color: C.caramel, border: '1.5px solid rgba(192,57,43,0.3)' }} onClick={onClearCache}>Clear Cache &amp; Reload</button>
+            <button style={{ ...S.primaryBtn, marginTop: 0, background: 'none', color: C.caramelText, border: '1.5px solid rgba(192,57,43,0.3)' }} onClick={onClearCache}>Clear Cache &amp; Reload</button>
           </div>
         </div>
       </div>
@@ -814,7 +863,7 @@ export default function App() {
           const active = tab === id;
           return (
             <div key={id} style={S.navItem} onClick={() => setTab(id)}>
-              <Icon color={active ? C.caramel : C.textLight} />
+              <Icon color={active ? C.caramelText : C.textLight} />
               <span style={S.navLabel(active)}>{label}</span>
             </div>
           );

@@ -41,6 +41,10 @@
     /* Tabular figures keep currency columns aligned */
     .num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; letter-spacing: 0.01em; }
 
+    /* Skeleton loading shimmer */
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .skel { animation: none !important; } }
+
     /* Focus ring on form fields */
     input:focus, select:focus, textarea:focus {
       border-color: #D4874E !important;
