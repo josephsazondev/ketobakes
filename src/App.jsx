@@ -165,6 +165,26 @@ const IconEye = ({ off }) => (
       : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></>}
   </svg>
 );
+const IconCheckCircle = ({ size = 48, color = C.sage }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" /><polyline points="8.5 12.5 11 15 16 9" />
+  </svg>
+);
+const IconCheck = ({ size = 13, color = C.sage }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+);
+const IconCupcake = ({ size = 40, color = C.brownLight }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 11h12l-1.3 8.2a1 1 0 0 1-1 .8H8.3a1 1 0 0 1-1-.8L6 11Z" />
+    <path d="M5 11a3 3 0 0 1 .6-5.2A3.5 3.5 0 0 1 12 4a3.5 3.5 0 0 1 6.4 1.8A3 3 0 0 1 19 11" />
+    <path d="M10 14v3M14 14v3" />
+  </svg>
+);
+const IconSearchOff = ({ size = 34, color = C.brownLight }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.65" y2="16.65" /><line x1="8.5" y1="11" x2="13.5" y2="11" />
+  </svg>
+);
 const Logo = ({ size = 32 }) => (
   <svg width={size} height={size} viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
     <rect width="64" height="64" rx="14" fill="rgba(255,255,255,0.12)" />
@@ -192,10 +212,10 @@ function MonthPicker({ value, onChange, dark = true }) {
   };
   const col = dark ? C.brownLight : C.brownMid;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-      <button onClick={() => shift(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: col, fontSize: 18, padding: '2px 6px' }}>‹</button>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <button aria-label="Previous month" onClick={() => shift(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: col, fontSize: 18, lineHeight: 1, padding: '9px 11px', borderRadius: 8 }}>‹</button>
       <span className="num" style={{ color: col, fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', minWidth: 74, textAlign: 'center' }}>{MONTHS[m - 1]} {y}</span>
-      <button onClick={() => shift(1)} disabled={atLatest} style={{ background: 'none', border: 'none', cursor: atLatest ? 'default' : 'pointer', color: atLatest ? 'rgba(196,149,106,0.3)' : col, fontSize: 18, padding: '2px 6px' }}>›</button>
+      <button aria-label="Next month" onClick={() => shift(1)} disabled={atLatest} style={{ background: 'none', border: 'none', cursor: atLatest ? 'default' : 'pointer', color: atLatest ? 'rgba(196,149,106,0.3)' : col, fontSize: 18, lineHeight: 1, padding: '9px 11px', borderRadius: 8 }}>›</button>
     </div>
   );
 }
@@ -228,7 +248,7 @@ function SmartSelect({ value, onChange, options, listKey }) {
   );
 }
 
-function MonthlyChart({ txns, month }) {
+function MonthlyChart({ txns, month, onMonth }) {
   if (!txns.length) return null;
   const [my, mm] = month.split('-').map(Number);
   const cells = Array.from({ length: 6 }, (_, i) => {
@@ -238,27 +258,39 @@ function MonthlyChart({ txns, month }) {
   const byKey = Object.fromEntries(cells.map(c => [c.key, c]));
   txns.forEach(t => { try { const c = byKey[monthKey(parseDate(t.date))]; if (c) c[t.type] += Number(t.amount || 0); } catch {} });
   const max = Math.max(...cells.flatMap(c => [c.income, c.expense]), 1);
-  const H = 72, bw = 16, gap = 5, gGap = 10, gW = bw * 2 + gap + gGap, PAD = 16;
+  const H = 72, bw = 16, gap = 5, gGap = 14, gW = bw * 2 + gap + gGap, PAD = 16;
+  const W = gW * 6 - gGap + PAD * 2;
+  const selCell = cells.find(c => c.key === month);
   return (
     <div style={{ padding: '4px 16px 16px' }}>
-      <div style={{ ...S.section, padding: '12px 0 10px' }}>
+      <div style={{ ...S.section, padding: '12px 0 4px' }}>
         <span>6-Month Trend</span>
         <div style={{ display: 'flex', gap: 10 }}>
           <span style={{ fontSize: 10, color: C.sage, fontWeight: 700 }}>▮ Income</span>
           <span style={{ fontSize: 10, color: C.caramel, fontWeight: 700 }}>▮ Expense</span>
         </div>
       </div>
-      <svg width="100%" viewBox={`0 0 ${gW * 6 - gGap + PAD * 2} ${H + 22}`} preserveAspectRatio="xMidYMid meet">
+      {/* Selected-month values + tap hint */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, paddingBottom: 8 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: C.brownDeep }}>{selCell ? selCell.label : ''}</span>
+        <span className="num" style={{ fontSize: 12, color: C.sage, fontWeight: 600 }}>{peso(selCell ? selCell.income : 0)}</span>
+        <span className="num" style={{ fontSize: 12, color: C.caramel, fontWeight: 600 }}>{peso(selCell ? selCell.expense : 0)}</span>
+        <span style={{ fontSize: 10, color: C.textLight, marginLeft: 'auto' }}>tap a month ›</span>
+      </div>
+      <svg width="100%" viewBox={`0 0 ${W} ${H + 22}`} preserveAspectRatio="xMidYMid meet">
+        {/* baseline so empty months read as zero, not broken */}
+        <line x1={PAD - 4} y1={H} x2={W - PAD + 4} y2={H} stroke="rgba(196,149,106,0.3)" strokeWidth="1" />
         {cells.map((c, i) => {
           const x = PAD + i * gW;
-          const ih = Math.max(3, c.income / max * H), eh = Math.max(3, c.expense / max * H);
+          const ih = Math.max(2, c.income / max * H), eh = Math.max(2, c.expense / max * H);
           const sel = c.key === month;
           return (
-            <g key={c.key} opacity={sel ? 1 : 0.5}>
-              {sel && <rect x={x - gap - 2} y={-2} width={bw * 2 + gap + 8} height={H + 4} rx="6" fill="rgba(196,149,106,0.14)" />}
+            <g key={c.key} opacity={sel ? 1 : 0.55} onClick={() => onMonth && onMonth(c.key)} style={{ cursor: onMonth ? 'pointer' : 'default' }}>
+              {/* full-height transparent hit area for easy tapping */}
+              <rect x={x - gap - 3} y={-2} width={bw * 2 + gap + 10} height={H + 22} fill={sel ? 'rgba(196,149,106,0.16)' : 'transparent'} rx="6" />
               <rect x={x} y={H - ih} width={bw} height={ih} rx="3" fill={C.sage} />
               <rect x={x + bw + gap} y={H - eh} width={bw} height={eh} rx="3" fill={C.caramel} />
-              <text x={x + bw + gap / 2} y={H + 15} textAnchor="middle" fontSize="9" fontWeight={sel ? 700 : 400} fill={sel ? C.brownDeep : C.textLight}>{c.label}</text>
+              <text x={x + bw + gap / 2} y={H + 16} textAnchor="middle" fontSize="9" fontWeight={sel ? 700 : 400} fill={sel ? C.brownDeep : C.textLight}>{c.label}</text>
             </g>
           );
         })}
@@ -299,8 +331,8 @@ function UnpaidPanel({ unpaid, onTogglePaid }) {
   const shown = expanded ? unpaid : unpaid.slice(0, LIMIT);
   return (
     <div style={{ margin: '12px 16px 4px', background: 'rgba(212,135,78,0.08)', borderRadius: 14, padding: '12px 14px', border: '1px solid rgba(212,135,78,0.3)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-        <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramel, fontWeight: 700 }}>Outstanding ({unpaid.length})</span>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <span style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: C.caramel, fontWeight: 700 }}>Receivables · all unpaid ({unpaid.length})</span>
         <span style={{ fontFamily: SERIF, fontSize: 14, color: C.caramel, fontWeight: 600 }} className="num">{peso(total)}</span>
       </div>
       <div style={{ maxHeight: expanded ? 232 : 'none', overflowY: expanded ? 'auto' : 'visible' }}>
@@ -315,8 +347,8 @@ function UnpaidPanel({ unpaid, onTogglePaid }) {
               <span style={{ fontSize: 12, color: C.caramel, fontFamily: SERIF, fontWeight: 600 }} className="num">{peso(t.amount)}</span>
               {onTogglePaid && (
                 <button onClick={() => onTogglePaid(t)} title="Mark as paid"
-                  style={{ flexShrink: 0, fontSize: 9, fontWeight: 700, letterSpacing: '0.03em', borderRadius: 6, padding: '3px 7px', cursor: 'pointer', border: `1px solid ${C.sage}`, background: 'transparent', color: C.sage }}>
-                  ✓ PAID
+                  style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, letterSpacing: '0.02em', borderRadius: 8, padding: '5px 9px', cursor: 'pointer', border: `1px solid ${C.sage}`, background: 'rgba(138,158,122,0.12)', color: C.sage }}>
+                  <IconCheck size={11} color={C.sage} />Mark Paid
                 </button>
               )}
             </div>
@@ -356,17 +388,18 @@ function SwipeRow({ children, onDelete, onTap }) {
 
 // Tappable payment-status pill — toggles paid ⇄ unpaid.
 const StatusPill = ({ paid, onToggle }) => (
-  <button onClick={onToggle} title={paid ? 'Mark as unpaid' : 'Mark as paid'}
+  <button onClick={onToggle} title={paid ? 'Tap to mark unpaid' : 'Tap to mark paid'}
     style={{
-      fontSize: 9, fontWeight: 700, letterSpacing: '0.04em', borderRadius: 5, padding: '2px 6px', cursor: 'pointer',
-      border: paid ? '1px solid rgba(138,158,122,0.4)' : 'none',
-      background: paid ? 'transparent' : 'rgba(212,135,78,0.2)',
+      display: 'inline-flex', alignItems: 'center', gap: 3,
+      fontSize: 10, fontWeight: 700, letterSpacing: '0.03em', borderRadius: 7, padding: '4px 9px', minHeight: 24, cursor: 'pointer',
+      border: paid ? '1px solid rgba(138,158,122,0.5)' : `1px solid ${C.caramel}`,
+      background: paid ? 'rgba(138,158,122,0.12)' : 'rgba(212,135,78,0.22)',
       color: paid ? C.sage : C.caramel,
-    }}>{paid ? 'PAID' : 'UNPAID'}</button>
+    }}>{paid && <IconCheck size={10} color={C.sage} />}{paid ? 'PAID' : 'UNPAID'}</button>
 );
 
 // ─── DASHBOARD ───────────────────────────────────────────────────────────────
-function Dashboard({ txns, loading, error, month, onTogglePaid }) {
+function Dashboard({ txns, loading, error, month, onTogglePaid, onMonth }) {
   const st = useMemo(() => computeStats(txns, month), [txns, month]);
   if (loading) return <Spinner />;
   if (error) return <div style={S.center}><div style={S.error}>{error}</div><div style={{ ...S.muted, fontSize: 12 }}>Configure the API in Settings ⚙</div></div>;
@@ -374,7 +407,7 @@ function Dashboard({ txns, loading, error, month, onTogglePaid }) {
   const profit = st.income - st.expenses;
   const delta = profit - (st.prevIncome - st.prevExpenses);
   return (
-    <div style={{ position: 'relative', height: '100%' }}>
+    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={S.screen}>
         <div style={S.hero}>
           <div style={S.heroLabel}>Net Profit · {labelOf(month)}</div>
@@ -387,11 +420,11 @@ function Dashboard({ txns, loading, error, month, onTogglePaid }) {
         </div>
         <MonthDetail st={st} />
         <UnpaidPanel unpaid={st.unpaid} onTogglePaid={onTogglePaid} />
-        <MonthlyChart txns={txns} month={month} />
+        <MonthlyChart txns={txns} month={month} onMonth={onMonth} />
         <div style={S.section}>Top Products<span style={S.sectionTag}>{labelOf(month)}</span></div>
         <div style={{ padding: '0 16px 16px' }}>
           {st.topProducts.length === 0
-            ? <div style={{ ...S.muted, padding: '12px 0 20px' }}>🧁 No sales logged this month yet</div>
+            ? <div style={{ ...S.center, padding: '16px 0 24px' }}><IconCupcake /><div style={S.muted}>No sales logged this month yet</div></div>
             : st.topProducts.map((p, i) => (
               <div key={p.name} style={{ ...S.row, borderBottom: i < st.topProducts.length - 1 ? S.row.borderBottom : 'none' }}>
                 <div style={S.dot(DOTS[i % DOTS.length])} />
@@ -401,6 +434,7 @@ function Dashboard({ txns, loading, error, month, onTogglePaid }) {
               </div>
             ))}
         </div>
+        <div style={{ height: 88 }} />{/* clearance for the floating + button */}
       </div>
     </div>
   );
@@ -459,7 +493,7 @@ function LogEntry({ onBack, onSaved, editTxn }) {
   };
 
   if (done) return (
-    <div style={{ ...S.center, height: '100%' }}><div style={{ fontSize: 48 }}>✓</div><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sage }}>{editing ? 'Updated!' : 'Saved!'}</div></div>
+    <div style={{ ...S.center, height: '100%' }}><IconCheckCircle size={52} /><div style={{ fontFamily: SERIF, fontSize: 20, color: C.sage }}>{editing ? 'Updated!' : 'Saved!'}</div></div>
   );
 
   return (
@@ -570,13 +604,17 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
           ? <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: C.caramel, fontWeight: 700 }} onClick={() => onMonth(thisMonth())}>Pick month ›</button>
           : <MonthPicker value={month} onChange={onMonth} dark={false} />}
       </div>
-      <div style={{ display: 'flex', gap: 8, padding: '10px 16px', overflowX: 'auto', background: C.warmWhite }}>
-        {['all', 'income', 'expense'].map(f => <button key={f} style={S.chip(typeF === f)} onClick={() => setTypeF(f)}>{f === 'all' ? 'All' : f}</button>)}
-        <div style={{ width: 1, background: 'rgba(196,149,106,0.3)', margin: '2px 4px', flexShrink: 0 }} />
-        {['all', 'paid', 'unpaid'].map(f => <button key={f} style={S.chip(paidF === f)} onClick={() => setPaidF(f)}>{f === 'all' ? 'Any status' : f}</button>)}
+      <div style={{ position: 'relative', background: C.warmWhite }}>
+        <div style={{ display: 'flex', gap: 8, padding: '10px 16px', overflowX: 'auto' }}>
+          {['all', 'income', 'expense'].map(f => <button key={f} style={S.chip(typeF === f)} onClick={() => setTypeF(f)}>{f === 'all' ? 'All' : f}</button>)}
+          <div style={{ width: 1, background: 'rgba(196,149,106,0.3)', margin: '2px 4px', flexShrink: 0 }} />
+          {['all', 'paid', 'unpaid'].map(f => <button key={f} style={S.chip(paidF === f)} onClick={() => setPaidF(f)}>{f === 'all' ? 'Any status' : f}</button>)}
+        </div>
+        {/* fade hint that the chip row scrolls horizontally */}
+        <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 28, pointerEvents: 'none', background: `linear-gradient(90deg, rgba(251,247,240,0), ${C.warmWhite})` }} />
       </div>
       <div style={S.screen}>
-        {sorted.length === 0 && <div style={S.center}><div style={{ fontSize: 30, opacity: 0.5 }}>🔍</div><div style={S.muted}>No transactions match these filters</div></div>}
+        {sorted.length === 0 && <div style={S.center}><IconSearchOff /><div style={S.muted}>No transactions match these filters</div></div>}
         {sorted.map(([key, g]) => (
           <div key={key} style={{ padding: '0 16px 8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 8px' }}>
@@ -595,7 +633,8 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                     <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600, color: exp ? C.caramel : C.sage }} className="num">{exp ? '−' : ''}{peso(t.amount)}</div>
-                    <StatusPill paid={t.paid} onToggle={(e) => { e.stopPropagation(); onTogglePaid && onTogglePaid(t); }} />
+                    {/* Income always shows the toggle; expenses only when unpaid (paid expenses are the norm) */}
+                    {(!exp || !t.paid) && <StatusPill paid={t.paid} onToggle={(e) => { e.stopPropagation(); onTogglePaid && onTogglePaid(t); }} />}
                   </div>
                 </div>
               );
@@ -605,7 +644,7 @@ function History({ txns, loading, error, month, onMonth, onDelete, onEdit, onTog
             })}
           </div>
         ))}
-        <div style={{ height: 24 }} />
+        <div style={{ height: 88 }} />{/* clearance for the floating + button */}
       </div>
     </div>
   );
@@ -762,10 +801,10 @@ export default function App() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <Logo /><div style={S.logo}>Keto<span style={{ color: C.caramel }}>Bakes</span></div>
         </div>
-        <MonthPicker value={dashMonth} onChange={setMonth} />
+        {tab === 'dashboard' && <MonthPicker value={dashMonth} onChange={setMonth} />}
       </div>
       <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-        {tab === 'dashboard' && <Dashboard txns={txns} loading={loading} error={error} month={dashMonth} onTogglePaid={togglePaid} />}
+        {tab === 'dashboard' && <Dashboard txns={txns} loading={loading} error={error} month={dashMonth} onTogglePaid={togglePaid} onMonth={setMonth} />}
         {tab === 'history' && <History txns={txns} loading={loading} error={error} month={month} onMonth={setMonth} onDelete={del} onEdit={openEdit} onTogglePaid={togglePaid} />}
         {tab === 'settings' && <Settings onClearCache={clearCache} />}
         {tab !== 'settings' && <button style={S.fab} onClick={openNew} aria-label="Add entry">+</button>}
