@@ -7,10 +7,10 @@ dist-ssr/
 *.local
 
 # ─── Backend — kept local only (not needed for GitHub Pages) ──
-Code.gs
 apps-script/
 SETUP.md
 PROJECT_SUMMARY.md
+TECH_TEMPLATE.md
 
 # ─── Dead Create-React-App stubs (real app is src/App.jsx) ────
 public/index.html
