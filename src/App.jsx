@@ -723,10 +723,18 @@ export default function App() {
   const openEdit = (t) => { setEditTxn(t); setShowLog(true); };
 
   // Rewrite a whole row from a transaction object (used by toggle paid).
+  // Backend derives the sheet from the rowId prefix (I_/E_), so no type field needed.
   const sendUpdate = (t) => api.post({
-    type: 'update', rowId: t.rowId, date: t.date,
-    qty: t.qty, price: t.price, amount: t.amount, paid: t.paid,
-    description: t.description || '', name: t.name || '', payer: t.payer || '', particulars: t.particulars || '',
+    type: 'update', rowId: t.rowId,
+    date: t.date,
+    qty: Number(t.qty) || 0,
+    price: Number(t.price) || 0,
+    amount: Number(t.amount) || 0,
+    paid: Boolean(t.paid),
+    description: t.description || '',
+    name: t.name || '',
+    payer: t.payer || '',
+    particulars: t.particulars || '',
   });
 
   const togglePaid = async (t) => {
